@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -21,23 +22,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.myapp.voicehealth.R
+import com.myapp.voicehealth.core.storage.UserPreferences
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun SplashScreen(navController: NavController) {
-    // State for animation visibility
-    var visible by remember { mutableStateOf(false) }
 
-    // Start animation and navigate after delay
+    var visible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val userPrefs = UserPreferences(context)
+
     LaunchedEffect(Unit) {
         visible = true
         delay(2000)
-        navController.navigate("login_screen") {
-            popUpTo("splash_screen") { inclusive = true }
+
+        val isLoggedIn = userPrefs.isLoggedIn.first()
+        if (isLoggedIn) {
+            navController.navigate("home_screen") {
+                popUpTo("splash_screen") { inclusive = true }
+                launchSingleTop = true
+            }
+        } else {
+            navController.navigate("login_screen") {
+                popUpTo("splash_screen") { inclusive = true }
+                launchSingleTop = true
+            }
         }
     }
 
-    // Gradient background
+
     val gradient = Brush.verticalGradient(
         colors = listOf(Color(0xFF74ebd5), Color(0xFFACB6E5))
     )
