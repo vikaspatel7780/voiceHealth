@@ -31,8 +31,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.myapp.voicehealth.R
+import com.myapp.voicehealth.core.storage.UserPreferences
 import com.myapp.voicehealth.domain.models.LoginResponse
 import com.myapp.voicehealth.viewmodel.AuthViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -50,7 +54,15 @@ fun LoginScreen(navController: NavController) {
     fun handleLoginResponse(loginResponse: LoginResponse){
         Log.d("loginResponse","login response $loginResponse")
         if(loginResponse.success && loginResponse.data?.user?.isEmailVerified == true){
-           navController.navigate("home_screen")
+            val token = loginResponse.data.accessToken ?: ""
+            val userPrefs = UserPreferences(context)
+            CoroutineScope(Dispatchers.IO).launch {
+                userPrefs.saveUserLogin(token)
+            }
+            navController.navigate("home_screen") {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
         }else{
             navController.navigate("otp_verification_screen")
         }

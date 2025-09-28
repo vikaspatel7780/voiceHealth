@@ -3,6 +3,7 @@ package com.myapp.voicehealth.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.myapp.voicehealth.core.network.ApiClient
 import com.myapp.voicehealth.domain.models.LoginRequest
 import com.myapp.voicehealth.domain.models.LoginResponse
@@ -57,7 +58,7 @@ class AuthViewModel : ViewModel() {
                         _loggedInUser.value = result.data?.user
                         _loginStateMessage.value = "Login successful"
 
-                        Log.d("AuthViewModel5", "Login successful. Token: ${result}")
+                        Log.d("AuthViewModel", "Login successful. Token: ${result}")
                         onLogin(result) // ✅ invoke callback with login result
                     } else {
                         _loginStateMessage.value = "Login failed: ${result?.message}"

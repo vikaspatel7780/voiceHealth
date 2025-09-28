@@ -48,13 +48,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.myapp.voicehealth.R
+import com.myapp.voicehealth.core.storage.UserPreferences
 import com.myapp.voicehealth.ui.components.FeatureTile
 import com.myapp.voicehealth.ui.components.VoiceHealthTopBar
 import com.myapp.voicehealth.ui.theme.PrimaryBlue
+import com.myapp.voicehealth.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -62,7 +66,8 @@ import kotlinx.coroutines.launch
 fun HomeScreen(navController: NavController) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-
+    val userPrefs = UserPreferences(LocalContext.current)
+    val authViewModel: AuthViewModel = viewModel()
     val bannerImages = listOf(
         R.drawable.doctor_banner1,
         R.drawable.doctor_banner2,
@@ -74,6 +79,7 @@ fun HomeScreen(navController: NavController) {
         drawerState = drawerState,
         drawerContent = {
             DrawerContent(
+                navController,
                 onItemClick = { navigationText ->
                     navController.navigate(navigationText)
                     scope.launch { drawerState.close() }
@@ -186,10 +192,15 @@ fun HomeScreen(navController: NavController) {
 
 @Composable
 fun DrawerContent(
+    navController: NavController,
     userName: String = "John Doe",
     userEmail: String = "john.doe@example.com",
     onItemClick: (String) -> Unit // Pass route or label
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val userPrefs = UserPreferences(context)
+
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -255,7 +266,13 @@ fun DrawerContent(
         Divider()
 
         DrawerMenuItem(text = "Logout", icon = Icons.Default.ExitToApp) {
-            onItemClick("doctor_suggestion")
+            scope.launch {
+                userPrefs.clearUser() // Clear token & login flag
+                navController.navigate("login_screen") {
+                    popUpTo(0) { inclusive = true } // Clear back stack
+                    launchSingleTop = true
+                }
+            }
         }
     }
 }
